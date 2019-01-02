@@ -18,18 +18,25 @@ class App:
     def linkparser(self, link):
         param = urlparse(link)
         imglist = []
+        username = ""
         if (param.netloc == "www.artstation.com"):
             username = param.path[1:]
             srcs = json.loads(requests.get("https://www.artstation.com/users/"+username+"/projects.json").text)
+            logging.info('username: %s',username)
             for project in srcs["data"]:
                 artpage = json.loads(requests.get("https://www.artstation.com/projects/"+project["hash_id"]+".json").text)
                 ite = 0
+                logging.info('project: %s', project["title"])
                 for img in artpage["assets"]:
                     s = {}
+                    s["author"] = username
                     s["title"] = username + "-" + project["title"]  + ("" if (ite == 0) else ("-"+str(ite)))
                     s["imageurl"] = img["image_url"]
                     imglist.append(s)
                     ite += 1
+                    logging.debug('saving: %s', str(ite))
+        if (self.file_path == ""):
+            self.file_path = username
         return imglist
 
     def saveimg(self):
@@ -56,10 +63,10 @@ class App:
 
 def main():
     parser = argparse.ArgumentParser(description='Download Artworks.')
-    # parser.add_argument('-l', '--link', type=str, required=True)
+    parser.add_argument('-l', '--link', type=str, required=True)
     parser.add_argument('-d', '--debug', action='store_true', default=False)
     parser.add_argument('-m', '--max_conn', type=int, default=5)
-    parser.add_argument('-t', '--target', type=str, default='img')
+    parser.add_argument('-t', '--target', type=str, default='')
     args = parser.parse_args()
     if args.debug:
         logging.basicConfig(level=logging.DEBUG, \
