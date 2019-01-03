@@ -34,13 +34,14 @@ class App:
                     s["imageurl"] = img["image_url"]
                     imglist.append(s)
                     ite += 1
-                    logging.debug('saving: %s', str(ite))
+                    logging.debug('got list: %s', str(ite))
         if (self.file_path == ""):
             self.file_path = username
         return imglist
 
     def saveimg(self):
         imglist = self.linkparser(self.link)
+        logging.info('== start saving image ==')
         for img in imglist:
             try:
                 if not os.path.exists(self.file_path):
@@ -64,7 +65,7 @@ class App:
 def main():
     parser = argparse.ArgumentParser(description='Download Artworks.')
     parser.add_argument('-l', '--link', type=str, required=True)
-    parser.add_argument('-d', '--debug', action='store_true', default=False)
+    parser.add_argument('-d', '--debug', action='store_true', default=True)
     parser.add_argument('-m', '--max_conn', type=int, default=5)
     parser.add_argument('-t', '--target', type=str, default='')
     args = parser.parse_args()
@@ -75,7 +76,7 @@ def main():
         logging.basicConfig(level=logging.INFO, \
                     format='[%(asctime)s][%(levelname)s][%(message)s]')
     app = App(args.link, args.max_conn, args.target)
-    # app = App("https://www.artstation.com/alicejaunet", args.max_conn, args.target)
+    # app = App("https://www.artstation.com/africas", args.max_conn, args.target)
     app.saveimg()
 
 if __name__ == '__main__':
