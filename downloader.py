@@ -55,11 +55,13 @@ class App:
                 file_suffix = re.findall(pat,(img["imageurl"]).split('/')[-1])[0]
                 file_name = img["title"]
                 filename = '{}{}{}.{}'.format(self.file_path,os.sep,file_name,file_suffix)
-                
+                if os.path.exists(filename):
+                    logging.info('image existed : %s',filename)
+                    continue
                 im = requests.get(img["imageurl"])
                 if im.status_code == 200:
                     open(filename, 'wb').write(im.content)
-                    logging.info('image saved: %s',filename)
+                    logging.info('image saved   : %s',filename)
             except IOError as e: logging.error('IOError : %s',e)
             except Exception as e: logging.error('Error : %s',e)
 
