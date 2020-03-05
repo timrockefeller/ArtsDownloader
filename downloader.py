@@ -5,15 +5,19 @@ import re
 
 from urllib.parse import urlparse
 import json
+import socket
+import socks
 import requests
 
 
-
 class App:
-    def __init__(self, link, max_conn, file_path):
+    def __init__(self, link, max_conn, file_path, proxy):
         print("initializing..")
         self.link = link
         self.file_path = file_path
+        if(proxy!=""):
+            socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", int(proxy))
+            socket.socket = socks.socksocket
         # self.pool_sema = BoundedSemaphore(value=max_connection)
     def linkparser(self, link):
         param = urlparse(link)
@@ -30,7 +34,7 @@ class App:
                 for img in artpage["assets"]:
                     s = {}
                     s["author"] = username
-                    s["title"] = username + "-" + project["title"]  + ("" if (ite == 0) else ("-"+str(ite)))
+                    s["title"] = username + " - " + project["title"]  + "("+project["hash_id"] +(")" if (ite == 0) else (") - "+str(ite)))
                     s["imageurl"] = img["image_url"]
                     imglist.append(s)
                     ite += 1
@@ -55,7 +59,7 @@ class App:
                 im = requests.get(img["imageurl"])
                 if im.status_code == 200:
                     open(filename, 'wb').write(im.content)
-                    logging.debug('image saved: %s',filename)
+                    logging.info('image saved: %s',filename)
             except IOError as e: logging.error('IOError : %s',e)
             except Exception as e: logging.error('Error : %s',e)
 
@@ -65,9 +69,10 @@ class App:
 def main():
     parser = argparse.ArgumentParser(description='Download Artworks.')
     parser.add_argument('-l', '--link', type=str, required=True)
-    parser.add_argument('-d', '--debug', action='store_true', default=True)
+    parser.add_argument('-d', '--debug', action='store_true', default=False)
     parser.add_argument('-m', '--max_conn', type=int, default=5)
     parser.add_argument('-t', '--target', type=str, default='')
+    parser.add_argument('-p', '--proxy', type=str, default='')
     args = parser.parse_args()
     if args.debug:
         logging.basicConfig(level=logging.DEBUG, \
@@ -75,7 +80,7 @@ def main():
     else:
         logging.basicConfig(level=logging.INFO, \
                     format='[%(asctime)s][%(levelname)s][%(message)s]')
-    app = App(args.link, args.max_conn, args.target)
+    app = App(args.link, args.max_conn, args.target,args.proxy)
     # app = App("https://www.artstation.com/africas", args.max_conn, args.target)
     app.saveimg()
 
